@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>陈文婷 对不起 💕</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ffc0cb 25%, #ffd1dc 50%, #ffb6c1 75%, #ffc0cb 100%);
+    background-size: 400% 400%;
+    animation: bgShift 12s ease-in-out infinite;
+    font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @keyframes bgShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* ===== Floating Hearts ===== */
+  .hearts-container {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+  .heart-float {
+    position: absolute;
+    animation: floatUp linear infinite;
+    opacity: 0.7;
+    font-size: 24px;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(105vh) scale(0.3) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.7; }
+    90%  { opacity: 0.7; }
+    100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+  }
+  @keyframes floatUpSmall {
+    0%   { transform: translateY(105vh) scale(0.2) rotate(0deg) translateX(0); opacity: 0; }
+    10%  { opacity: 0.5; }
+    50%  { transform: translateY(50vh) scale(0.6) rotate(180deg) translateX(30px); opacity: 0.5; }
+    90%  { opacity: 0.5; }
+    100% { transform: translateY(-10vh) scale(1) rotate(360deg) translateX(-20px); opacity: 0; }
+  }
+
+  /* ===== Main Card ===== */
+  .card {
+    position: relative; z-index: 10;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 32px;
+    padding: 40px 28px 36px;
+    margin: 20px;
+    max-width: 420px; width: 90%;
+    box-shadow: 0 20px 60px rgba(255, 105, 135, 0.25), 0 4px 12px rgba(255, 105, 135, 0.12);
+    text-align: center;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+  }
+
+  /* ===== My Melody SVG ===== */
+  .melody-wrap {
+    margin: 0 auto 8px;
+    width: 120px; height: 120px;
+    animation: bounce 2s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-14px); }
+  }
+
+  /* ===== Title ===== */
+  .title-line {
+    font-size: 28px;
+    font-weight: 700;
+    color: #e8547c;
+    letter-spacing: 3px;
+    margin: 8px 0 4px;
+    text-shadow: 0 2px 8px rgba(255, 105, 135, 0.3);
+  }
+  .name-highlight {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b8a, #e8547c, #ff6b8a);
+    background-size: 200% 200%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 2.5s ease-in-out infinite;
+    font-size: 34px;
+  }
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+
+  /* ===== Apology Text ===== */
+  .sorry-text {
+    font-size: 18px;
+    color: #d4687c;
+    margin: 6px 0 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+  }
+
+  /* ===== Message ===== */
+  .message {
+    font-size: 14px;
+    color: #c97a8b;
+    line-height: 1.8;
+    margin: 12px 0 18px;
+    background: rgba(255, 255, 255, 0.45);
+    border-radius: 18px;
+    padding: 16px 18px;
+    border: 1.5px dashed #f7abb6;
+  }
+  .message p { margin: 2px 0; }
+
+  /* ===== Bottom Icons ===== */
+  .bottom-icons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 32px;
+    flex-wrap: wrap;
+  }
+  .bottom-icons span {
+    animation: wiggle 1.8s ease-in-out infinite;
+  }
+  .bottom-icons span:nth-child(2) { animation-delay: 0.3s; }
+  .bottom-icons span:nth-child(3) { animation-delay: 0.6s; }
+  .bottom-icons span:nth-child(4) { animation-delay: 0.9s; }
+  .bottom-icons span:nth-child(5) { animation-delay: 1.2s; }
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25%      { transform: rotate(8deg) scale(1.1); }
+    75%      { transform: rotate(-8deg) scale(1.1); }
+  }
+
+  /* ===== Sparkle ===== */
+  .sparkle {
+    position: absolute;
+    pointer-events: none;
+    animation: sparkleFade 1.5s ease-out forwards;
+    font-size: 20px;
+    z-index: 20;
+  }
+  @keyframes sparkleFade {
+    0%   { transform: scale(0) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1.8) rotate(180deg); opacity: 0; }
+  }
+
+  /* ===== Ribbon ===== */
+  .ribbon-wrap {
+    position: absolute; top: -14px; right: 18px;
+    z-index: 30;
+  }
+  .ribbon {
+    background: linear-gradient(135deg, #ff85a1, #ff5773);
+    color: #fff;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 14px rgba(255, 85, 115, 0.4);
+    animation: ribbonWave 2.5s ease-in-out infinite;
+  }
+  @keyframes ribbonWave {
+    0%, 100% { transform: rotate(0deg); }
+    33%      { transform: rotate(5deg); }
+    66%      { transform: rotate(-5deg); }
+  }
+
+  /* ===== Tap hint ===== */
+  .tap-hint {
+    font-size: 11px;
+    color: #e8a0b0;
+    margin-top: 16px;
+    letter-spacing: 1px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50%      { opacity: 1; }
+  }
+
+  /* ===== Mobile tweaks ===== */
+  @media (max-width: 380px) {
+    .card { padding: 30px 18px 28px; }
+    .title-line { font-size: 22px; }
+    .name-highlight { font-size: 28px; }
+    .sorry-text { font-size: 15px; }
+    .message { font-size: 13px; padding: 12px 14px; }
+    .melody-wrap { width: 90px; height: 90px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating Hearts -->
+<div class="hearts-container" id="heartsContainer"></div>
+
+<!-- Main Card -->
+<div class="card" id="mainCard">
+
+  <!-- Corner ribbon -->
+  <div class="ribbon-wrap">
+    <div class="ribbon">💖 原谅我吧</div>
+  </div>
+
+  <!-- My Melody -->
+  <div class="melody-wrap">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ears -->
+      <ellipse cx="65" cy="70" rx="28" ry="42" fill="#f9a8c8" stroke="#e887a8" stroke-width="2.5"/>
+      <ellipse cx="135" cy="70" rx="28" ry="42" fill="#f9a8c8" stroke="#e887a8" stroke-width="2.5"/>
+      <!-- Ear inners -->
+      <ellipse cx="65" cy="72" rx="14" ry="26" fill="#fcd5e3"/>
+      <ellipse cx="135" cy="72" rx="14" ry="26" fill="#fcd5e3"/>
+      <!-- Hood -->
+      <ellipse cx="100" cy="85" rx="58" ry="48" fill="#f9a8c8" stroke="#e887a8" stroke-width="2.5"/>
+      <!-- Face -->
+      <ellipse cx="100" cy="105" rx="42" ry="36" fill="#fffaf0" stroke="#f0d8d0" stroke-width="1.5"/>
+      <!-- Eyes -->
+      <ellipse cx="84" cy="98" rx="5" ry="5.5" fill="#3a2a2a"/>
+      <ellipse cx="116" cy="98" rx="5" ry="5.5" fill="#3a2a2a"/>
+      <!-- Eye shine -->
+      <circle cx="86" cy="96" r="1.8" fill="#fff"/>
+      <circle cx="118" cy="96" r="1.8" fill="#fff"/>
+      <!-- Nose -->
+      <ellipse cx="100" cy="107" rx="3.5" ry="2.8" fill="#f9c846"/>
+      <!-- Mouth -->
+      <path d="M93 113 Q100 122 107 113" fill="none" stroke="#e887a8" stroke-width="2" stroke-linecap="round"/>
+      <!-- Blush -->
+      <ellipse cx="70" cy="108" rx="10" ry="7" fill="#fcc5d0" opacity="0.6"/>
+      <ellipse cx="130" cy="108" rx="10" ry="7" fill="#fcc5d0" opacity="0.6"/>
+      <!-- Bow (flower) on right ear -->
+      <circle cx="140" cy="48" r="9" fill="#ff6b8a"/>
+      <circle cx="148" cy="48" r="8" fill="#ff6b8a"/>
+      <circle cx="144" cy="42" r="8" fill="#ff6b8a"/>
+      <circle cx="144" cy="54" r="7" fill="#ff6b8a"/>
+      <circle cx="144" cy="48" r="4" fill="#ffd700"/>
+      <!-- Left ear bow -->
+      <circle cx="60" cy="46" r="6" fill="#ff8fab"/>
+      <circle cx="66" cy="46" r="6" fill="#ff8fab"/>
+      <circle cx="63" cy="43" r="5.5" fill="#ff8fab"/>
+    </svg>
+  </div>
+
+  <!-- Title -->
+  <div class="title-line">
+    致 <span class="name-highlight">陈文婷</span>
+  </div>
+
+  <!-- Sorry -->
+  <div class="sorry-text">
+    🌸 对不起 🌸
+  </div>
+
+  <!-- Message -->
+  <div class="message">
+    <p>我知道我错了 💦</p>
+    <p>请给我一个机会</p>
+    <p>让我好好补偿你 🌷</p>
+    <p style="margin-top:8px;font-size:20px;">🥺 🤝 💗</p>
+  </div>
+
+  <!-- Cute icons row -->
+  <div class="bottom-icons">
+    <span>🐰</span>
+    <span>🌸</span>
+    <span>💝</span>
+    <span>🎀</span>
+    <span>🍰</span>
+  </div>
+
+  <!-- Tap hint -->
+  <div class="tap-hint">👆 点一点屏幕，会有惊喜哦～</div>
+</div>
+
+<script>
+  // ── Create floating hearts ──
+  const heartsContainer = document.getElementById('heartsContainer');
+  const heartEmojis = ['❤️', '💕', '💗', '💖', '💝', '💞', '💓', '🩷', '🌸', '🎀', '✨', '🌷'];
+
+  function spawnHeart() {
+    const el = document.createElement('span');
+    el.className = 'heart-float';
+    el.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+    el.style.left = Math.random() * 94 + '%';
+    const dur = 6 + Math.random() * 10;
+    el.style.animationDuration = dur + 's';
+    el.style.fontSize = (16 + Math.random() * 28) + 'px';
+    if (Math.random() > 0.6) el.style.animationName = 'floatUpSmall';
+
+    // Don't put hearts on top of card
+    const rect = document.getElementById('mainCard').getBoundingClientRect();
+    const cardLeft = (rect.left / window.innerWidth) * 100;
+    const cardRight = (rect.right / window.innerWidth) * 100;
+    const l = parseFloat(el.style.left);
+    if (l > cardLeft - 5 && l < cardRight + 5 && Math.random() > 0.1) {
+      el.style.left = (l < (cardLeft + cardRight) / 2 ? cardLeft - 8 - Math.random() * 12 : cardRight + 5 + Math.random() * 10) + '%';
+    }
+
+    heartsContainer.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+
+  // Spawn hearts at intervals
+  setInterval(spawnHeart, 400);
+  for (let i = 0; i < 12; i++) setTimeout(spawnHeart, i * 300);
+
+  // ── Tap sparkle effect ──
+  const sparkleEmojis = ['💖', '✨', '🌟', '💕', '🌸', '💗', '🩷', '🎀', '💝', '🌷'];
+
+  document.addEventListener('click', function(e) {
+    const sparkle = document.createElement('span');
+    sparkle.className = 'sparkle';
+    sparkle.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+    sparkle.style.left = e.clientX - 15 + 'px';
+    sparkle.style.top  = e.clientY - 15 + 'px';
+    sparkle.style.zIndex = '999';
+    document.body.appendChild(sparkle);
+    sparkle.addEventListener('animationend', () => sparkle.remove());
+  });
+
+  // ── Touch support ──
+  document.addEventListener('touchstart', function(e) {
+    // Don't prevent default — allow scrolling. We just use click for sparkles.
+  }, {passive: true});
+</script>
+</body>
+</html>
