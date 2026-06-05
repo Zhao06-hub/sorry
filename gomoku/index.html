@@ -16,7 +16,7 @@
     font-family: 'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
     overflow-x: hidden; user-select: none; -webkit-user-select: none;
   }
-  .screen { width: 100%; max-width: 460px; padding: 16px; display: none; flex-direction: column; align-items: center; }
+  .screen { width: 100%; max-width: 500px; padding: 8px; display: none; flex-direction: column; align-items: center; }
   .screen.active { display: flex; }
 
   /* Home */
@@ -47,7 +47,7 @@
     flex: 1; text-align: center; font-size: 17px; font-weight: 700; color: #e87890; letter-spacing: 2px;
   }
   .board-wrap {
-    background: rgba(255,255,255,0.5); border-radius: 24px; padding: 6px;
+    background: rgba(255,255,255,0.5); border-radius: 24px; padding: 4px;
     box-shadow: 0 8px 32px rgba(255,140,160,0.18);
     display: flex; align-items: center; justify-content: center;
   }
@@ -242,10 +242,10 @@ function initGame() {
 // ==================== CANVAS ====================
 let sz, cs, pd;
 function recompute() {
-  const mx = Math.min(window.innerWidth - 36, 400);
-  const my = Math.min(window.innerHeight * 0.42, 400);
+  const mx = window.innerWidth - 16;
+  const my = window.innerHeight * 0.58;
   sz = Math.floor(Math.min(mx, my));
-  cs = (sz * 0.88) / (N - 1);
+  cs = (sz * 0.92) / (N - 1);
   pd = (sz - cs * (N - 1)) / 2;
 }
 function cx(c) { return pd + c * cs; }
