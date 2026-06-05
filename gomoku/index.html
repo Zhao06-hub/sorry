@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>五子棋 🀄️</title>
+<style>
+  :root {
+    --pink: #f8a5c2; --pink2: #fcd5e3; --bg: #fff0f5;
+    --cell: min(6vw, 22px);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: linear-gradient(135deg, #fce4ec, #fff0f5, #fce4ec);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    font-family: 'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+    overflow-x: hidden; user-select: none; -webkit-user-select: none;
+  }
+  .container {
+    width: 100%; max-width: 460px; padding: 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.6); backdrop-filter: blur(10px);
+    border-radius: 20px; padding: 10px 20px; width: 100%; justify-content: center;
+    box-shadow: 0 2px 12px rgba(255,140,160,0.15);
+  }
+  .header .title { font-size: 22px; font-weight: 700; color: #e87890; letter-spacing: 2px; }
+  .header span { font-size: 24px; }
+
+  /* Board wrap */
+  .board-wrap {
+    position: relative; background: rgba(255,255,255,0.5); border-radius: 24px;
+    padding: 8px; box-shadow: 0 8px 32px rgba(255,140,160,0.18);
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas { display: block; border-radius: 12px; touch-action: manipulation; }
+
+  /* Status */
+  .status-bar {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.6); backdrop-filter: blur(10px);
+    border-radius: 16px; padding: 8px 18px; width: 100%; justify-content: center;
+    box-shadow: 0 2px 12px rgba(255,140,160,0.15);
+    font-weight: 600; font-size: 15px; color: #c96a7e;
+  }
+  .piece-indicator {
+    width: 26px; height: 26px; border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: all .3s;
+  }
+  .piece-indicator.black { background: radial-gradient(circle at 35% 35%, #555, #111 60%, #000); }
+  .piece-indicator.white { background: radial-gradient(circle at 35% 35%, #fff, #e8e8e8 60%, #ccc); }
+
+  /* Buttons */
+  .btn-row {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%;
+  }
+  .btn {
+    border: none; border-radius: 25px; padding: 10px 20px; font-size: 14px;
+    font-weight: 600; letter-spacing: 1px; cursor: pointer;
+    transition: all .2s; font-family: inherit;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn-undo { background: #ffe0e6; color: #d4687c; }
+  .btn-reset { background: #ffd1dc; color: #c06070; }
+  .btn-online { background: linear-gradient(135deg, #f8a5c2, #e87890); color: #fff; }
+  .btn-local { background: #fff; color: #e87890; border: 2px solid #f8a5c2; }
+
+  /* Online panel */
+  .online-panel {
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);
+    border-radius: 20px; padding: 16px; width: 100%;
+    box-shadow: 0 4px 16px rgba(255,140,160,0.15);
+    display: none; flex-direction: column; gap: 10px; align-items: center;
+  }
+  .online-panel.show { display: flex; }
+  .input-row { display: flex; gap: 8px; width: 100%; }
+  .input-row input {
+    flex: 1; border: 2px solid #f8a5c2; border-radius: 20px; padding: 8px 14px;
+    font-size: 14px; outline: none; font-family: inherit; text-align: center;
+    letter-spacing: 2px;
+  }
+  .input-row input:focus { border-color: #e87890; }
+  .btn-sm {
+    border: none; border-radius: 20px; padding: 8px 16px; font-size: 13px;
+    font-weight: 600; cursor: pointer; font-family: inherit;
+    background: linear-gradient(135deg, #f8a5c2, #e87890); color: #fff;
+    box-shadow: 0 2px 8px rgba(255,140,160,0.3); white-space: nowrap;
+  }
+  .btn-sm:active { transform: scale(0.95); }
+  .room-info {
+    font-size: 13px; color: #c96a7e; text-align: center; line-height: 1.6;
+  }
+  .room-info code {
+    background: #ffe0e6; padding: 3px 10px; border-radius: 10px;
+    font-size: 16px; letter-spacing: 2px; font-weight: 700;
+  }
+  .conn-status {
+    font-size: 12px; padding: 4px 12px; border-radius: 12px;
+    display: inline-block;
+  }
+  .conn-status.connected { background: #d4edda; color: #2d7a3f; }
+  .conn-status.waiting { background: #fff3cd; color: #856404; animation: pulse2 1.5s infinite; }
+  .conn-status.disconnected { background: #f8d7da; color: #721c24; }
+  @keyframes pulse2 { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  /* Toast */
+  .toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.8); color: #fff; padding: 10px 24px;
+    border-radius: 25px; font-size: 14px; z-index: 999;
+    pointer-events: none; opacity: 0; transition: opacity .3s;
+  }
+  .toast.show { opacity: 1; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: none; align-items: center; justify-content: center; z-index: 100;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff; border-radius: 24px; padding: 24px; text-align: center;
+    max-width: 320px; width: 90%; box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  }
+  .modal h3 { color: #e87890; margin-bottom: 8px; font-size: 20px; }
+  .modal p { color: #666; margin-bottom: 16px; font-size: 14px; }
+  .modal .btn-row { gap: 12px; }
+  .modal .btn { min-width: 80px; }
+
+  /* Win overlay */
+  .win-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center; z-index: 200;
+    flex-direction: column; gap: 16px;
+  }
+  .win-overlay.show { display: flex; }
+  .win-text {
+    font-size: 36px; font-weight: 900; color: #fff;
+    text-shadow: 0 0 20px rgba(255,200,50,0.8), 0 4px 8px rgba(0,0,0,0.3);
+    animation: popIn .5s ease-out;
+  }
+  @keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Responsive */
+  @media (max-width: 380px) {
+    .header .title { font-size: 18px; }
+    .btn { padding: 8px 14px; font-size: 12px; }
+    .status-bar { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <span>🀄️</span>
+    <span class="title">五 子 棋</span>
+    <span>🎯</span>
+  </div>
+
+  <!-- Board -->
+  <div class="board-wrap">
+    <canvas id="board"></canvas>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar" id="statusBar">
+    <div class="piece-indicator black" id="turnDot"></div>
+    <span id="statusText">黑棋回合</span>
+    <span id="moveCount" style="font-size:12px;color:#999;">第 0 手</span>
+  </div>
+
+  <!-- Buttons -->
+  <div class="btn-row">
+    <button class="btn btn-undo" onclick="requestUndo()">↩ 悔棋</button>
+    <button class="btn btn-reset" onclick="resetGame()">🔄 重新开始</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-online" id="btnOnline" onclick="toggleOnline()">🌐 在线对战</button>
+  </div>
+
+  <!-- Online Panel -->
+  <div class="online-panel" id="onlinePanel">
+    <div class="btn-row">
+      <button class="btn-sm" onclick="createRoom()">🏠 创建房间</button>
+      <button class="btn-sm" onclick="showJoinInput()">🚪 加入房间</button>
+    </div>
+    <div class="input-row" id="joinRow" style="display:none;">
+      <input type="text" id="roomInput" placeholder="输入房间号" maxlength="20" autocomplete="off">
+      <button class="btn-sm" onclick="joinRoom()">加入</button>
+    </div>
+    <div class="room-info" id="roomInfo"></div>
+    <div id="connStatus"></div>
+    <button class="btn-sm" style="background:#ffd1dc;color:#c06070;margin-top:4px;" id="btnLeave" onclick="leaveOnline()" hidden>退出房间</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Undo Request Modal -->
+<div class="modal-overlay" id="undoModal">
+  <div class="modal">
+    <h3>🤔 对手请求悔棋</h3>
+    <p>是否同意？</p>
+    <div class="btn-row">
+      <button class="btn btn-online" onclick="approveUndo(true)">✅ 同意</button>
+      <button class="btn btn-reset" onclick="approveUndo(false)">❌ 拒绝</button>
+    </div>
+  </div>
+</div>
+
+<!-- Win Overlay -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-text" id="winText"></div>
+  <button class="btn btn-reset" style="background:#fff;font-size:16px;" onclick="resetGame()">🔄 再来一局</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script>
+// ==================== CONSTANTS ====================
+const BOARD_SIZE = 15;
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+
+// ==================== GAME STATE ====================
+let board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+let currentPlayer = 'black';
+let history = [];
+let gameOver = false;
+let winner = null;
+let winLine = []; // winning cells
+let mode = 'local'; // 'local' | 'online'
+let lastMove = null;
+
+// Online state
+let peer = null;
+let conn = null;
+let roomId = null;
+let myColor = null;
+let isMyTurn = true;
+let pendingUndoRequest = false;
+
+// ==================== CANVAS SETUP ====================
+function calcSize() {
+  const maxW = Math.min(window.innerWidth - 40, 400);
+  const maxH = Math.min(window.innerHeight * 0.45, 400);
+  const size = Math.min(maxW, maxH);
+  return Math.floor(size);
+}
+
+function setupCanvas() {
+  const size = calcSize();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+  render();
+}
+
+const PADDING_RATIO = 0.06;
+function cellSize() { const s = calcSize(); return (s * (1 - 2 * PADDING_RATIO)) / (BOARD_SIZE - 1); }
+function padding() { return calcSize() * PADDING_RATIO; }
+
+function boardX(col) { return padding() + col * cellSize(); }
+function boardY(row) { return padding() + row * cellSize(); }
+
+// ==================== RENDER ====================
+function render() {
+  const size = calcSize();
+  const cs = cellSize();
+  const pad = padding();
+
+  ctx.clearRect(0, 0, size, size);
+
+  // Board background
+  const grad = ctx.createLinearGradient(0, 0, size, size);
+  grad.addColorStop(0, '#f5e6d3');
+  grad.addColorStop(0.5, '#faf0e0');
+  grad.addColorStop(1, '#f0dcc0');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.roundRect(pad - cs * 0.3, pad - cs * 0.3, cs * (BOARD_SIZE - 1) + cs * 0.6, cs * (BOARD_SIZE - 1) + cs * 0.6, 12); ctx.fill();
+
+  // Grid
+  ctx.strokeStyle = '#c8a882';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < BOARD_SIZE; i++) {
+    ctx.beginPath();
+    ctx.moveTo(boardX(0), boardY(i));
+    ctx.lineTo(boardX(BOARD_SIZE - 1), boardY(i));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(boardX(i), boardY(0));
+    ctx.lineTo(boardX(i), boardY(BOARD_SIZE - 1));
+    ctx.stroke();
+  }
+
+  // Star points
+  const stars = [[3,3],[3,7],[3,11],[7,3],[7,7],[7,11],[11,3],[11,7],[11,11]];
+  ctx.fillStyle = '#c8a882';
+  stars.forEach(([r, c]) => {
+    ctx.beginPath(); ctx.arc(boardX(c), boardY(r), cs * 0.13, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Win line highlight
+  if (winLine.length > 0) {
+    winLine.forEach(({row, col}) => {
+      ctx.fillStyle = 'rgba(255,215,0,0.5)';
+      ctx.beginPath(); ctx.arc(boardX(col), boardY(row), cs * 0.52, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+
+  // Pieces
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      if (!board[r][c]) continue;
+      const x = boardX(c), y = boardY(r), r2 = cs * 0.44;
+      const isBlack = board[r][c] === 'black';
+      const pieceGrad = ctx.createRadialGradient(x - r2 * 0.3, y - r2 * 0.3, r2 * 0.1, x, y, r2);
+      if (isBlack) {
+        pieceGrad.addColorStop(0, '#666');
+        pieceGrad.addColorStop(0.5, '#333');
+        pieceGrad.addColorStop(1, '#111');
+      } else {
+        pieceGrad.addColorStop(0, '#fff');
+        pieceGrad.addColorStop(0.5, '#f0f0f0');
+        pieceGrad.addColorStop(1, '#c8c8c8');
+      }
+      ctx.fillStyle = pieceGrad;
+      ctx.beginPath(); ctx.arc(x, y, r2, 0, Math.PI * 2); ctx.fill();
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.beginPath(); ctx.arc(x + 1, y + 1, r2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = pieceGrad;
+      ctx.beginPath(); ctx.arc(x, y, r2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  // Last move marker
+  if (lastMove && board[lastMove.row][lastMove.col]) {
+    const x = boardX(lastMove.col), y = boardY(lastMove.row);
+    ctx.fillStyle = board[lastMove.row][lastMove.col] === 'black' ? '#ff6b6b' : '#e87890';
+    ctx.beginPath(); ctx.arc(x, y, cs * 0.15, 0, Math.PI * 2); ctx.fill();
+  }
+
+  updateStatusBar();
+}
+
+function updateStatusBar() {
+  const dot = document.getElementById('turnDot');
+  const txt = document.getElementById('statusText');
+  const cnt = document.getElementById('moveCount');
+  cnt.textContent = `第 ${history.length} 手`;
+
+  if (gameOver) {
+    dot.className = 'piece-indicator ' + (winner === 'black' ? 'black' : 'white');
+    txt.textContent = winner === 'black' ? '黑棋获胜！🏆' : '白棋获胜！🏆';
+    txt.style.color = winner === 'black' ? '#333' : '#e87890';
+  } else {
+    dot.className = 'piece-indicator ' + currentPlayer;
+    const name = currentPlayer === 'black' ? '黑棋' : '白棋';
+    txt.textContent = mode === 'online'
+      ? (isMyTurn ? `你的回合 (${name})` : `对手回合 (${name})`)
+      : `${name}回合`;
+    txt.style.color = '#c96a7e';
+  }
+}
+
+// ==================== GAME LOGIC ====================
+function placePiece(row, col) {
+  if (gameOver) return false;
+  if (board[row][col]) return false;
+  if (mode === 'online' && !isMyTurn) return false;
+
+  board[row][col] = currentPlayer;
+  history.push({ row, col, player: currentPlayer });
+  lastMove = { row, col };
+
+  // Check win
+  const result = checkWin(row, col, currentPlayer);
+  if (result) {
+    gameOver = true;
+    winner = currentPlayer;
+    winLine = result;
+    render();
+    showWin(winner);
+    if (mode === 'online' && conn) {
+      conn.send({ type: 'move', row, col, winner });
+    }
+    return true;
+  }
+
+  // Switch turn
+  currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+  if (mode === 'online') {
+    isMyTurn = false;
+    if (conn) conn.send({ type: 'move', row, col });
+  }
+  render();
+  return true;
+}
+
+function checkWin(row, col, player) {
+  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+  for (const [dr, dc] of dirs) {
+    const line = [{row, col}];
+    // Forward
+    for (let i = 1; i < 5; i++) {
+      const r = row + dr * i, c = col + dc * i;
+      if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE || board[r][c] !== player) break;
+      line.push({row: r, col: c});
+    }
+    // Backward
+    for (let i = 1; i < 5; i++) {
+      const r = row - dr * i, c = col - dc * i;
+      if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE || board[r][c] !== player) break;
+      line.unshift({row: r, col: c});
+    }
+    if (line.length >= 5) return line;
+  }
+  return null;
+}
+
+function undo() {
+  if (history.length === 0) return false;
+  if (gameOver) return false;
+  const last = history.pop();
+  board[last.row][last.col] = null;
+  currentPlayer = last.player;
+  lastMove = history.length > 0 ? history[history.length - 1] : null;
+  winLine = [];
+  if (mode === 'online') isMyTurn = (myColor === currentPlayer);
+  render();
+  return true;
+}
+
+function requestUndo() {
+  if (gameOver) { toast('游戏已结束'); return; }
+  if (history.length === 0) { toast('没有可悔的棋'); return; }
+  if (mode === 'local') {
+    undo();
+    toast('已悔棋 ↩');
+  } else {
+    if (!conn) { toast('未连接对手'); return; }
+    if (pendingUndoRequest) { toast('已有悔棋请求等待中'); return; }
+    if (!isMyTurn) {
+      conn.send({ type: 'undo-request' });
+      pendingUndoRequest = true;
+      toast('已发送悔棋请求 📩');
+    } else {
+      // It's my turn, I can undo my opponent's last move (both moves come off)
+      conn.send({ type: 'undo-request' });
+      pendingUndoRequest = true;
+      toast('已发送悔棋请求 📩');
+    }
+  }
+}
+
+function approveUndo(approved) {
+  document.getElementById('undoModal').classList.remove('show');
+  if (conn) conn.send({ type: approved ? 'undo-approve' : 'undo-deny' });
+  pendingUndoRequest = false;
+}
+
+function showUndoRequest() {
+  document.getElementById('undoModal').classList.add('show');
+}
+
+function resetGame() {
+  board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+  currentPlayer = 'black';
+  history = [];
+  gameOver = false;
+  winner = null;
+  winLine = [];
+  lastMove = null;
+  document.getElementById('winOverlay').classList.remove('show');
+  if (mode === 'online') {
+    isMyTurn = (myColor === 'black');
+    if (conn) conn.send({ type: 'reset' });
+  } else {
+    isMyTurn = true;
+  }
+  pendingUndoRequest = false;
+  document.getElementById('undoModal').classList.remove('show');
+  render();
+}
+
+function showWin(w) {
+  const overlay = document.getElementById('winOverlay');
+  const text = document.getElementById('winText');
+  overlay.classList.add('show');
+  if (mode === 'online') {
+    text.textContent = (w === myColor) ? '🎉 你赢了！' : '😢 你输了';
+  } else {
+    text.textContent = w === 'black' ? '🏆 黑棋获胜！' : '🏆 白棋获胜！';
+  }
+}
+
+// ==================== ONLINE (PeerJS) ====================
+async function createRoom() {
+  if (conn) { toast('已在房间中'); return; }
+  try {
+    await initPeer();
+    roomId = peer.id;
+    document.getElementById('roomInfo').innerHTML = `
+      <p>📋 房间号：<br><code>${roomId}</code></p>
+      <p style="font-size:12px;">把房间号发给好友加入</p>
+    `;
+    setConnStatus('waiting', '等待对手加入...');
+    document.getElementById('btnLeave').hidden = false;
+    document.getElementById('joinRow').style.display = 'none';
+    updateOnlineUI();
+
+    peer.on('connection', (c) => {
+      if (conn) { c.close(); return; }
+      setupConnection(c);
+      toast('对手已加入！🎮');
+    });
+  } catch (e) {
+    toast('创建失败：' + e.message);
+    console.error(e);
+  }
+}
+
+function showJoinInput() {
+  if (conn) { toast('已在房间中'); return; }
+  document.getElementById('joinRow').style.display = 'flex';
+  document.getElementById('roomInput').focus();
+}
+
+async function joinRoom() {
+  const inputId = document.getElementById('roomInput').value.trim();
+  if (!inputId) { toast('请输入房间号'); return; }
+  if (conn) { toast('已在房间中'); return; }
+  try {
+    await initPeer();
+    const c = peer.connect(inputId, { reliable: true });
+    setupConnection(c);
+    toast('正在连接... 🔗');
+  } catch (e) {
+    toast('加入失败：' + e.message);
+    console.error(e);
+  }
+}
+
+function initPeer() {
+  return new Promise((resolve, reject) => {
+    if (peer && !peer.destroyed) { resolve(); return; }
+    try {
+      peer = new Peer({ debug: 0 });
+      peer.on('open', (id) => {
+        roomId = id;
+        resolve();
+      });
+      peer.on('error', (err) => {
+        reject(err);
+      });
+    } catch (e) { reject(e); }
+  });
+}
+
+function setupConnection(c) {
+  conn = c;
+  myColor = (peer.id === roomId || !roomId) ? 'black' : (peer.id > c.peer ? 'black' : 'white');
+  // Simpler: if we created the room (have roomId set before conn), we're black
+  // Actually, let's determine color simply:
+  // Creator (the one who called createRoom) is black
+  // If myColor not set yet (joiner), we're white
+  if (mode !== 'online') mode = 'online';
+  updateOnlineUI();
+
+  c.on('open', () => {
+    // Now determine colors: the one with the lexicographically smaller peer ID is black
+    // But actually: creator is always black
+    // Since we don't know if we're creator... let's use a flag
+    if (!myColor) {
+      myColor = 'white';
+      isMyTurn = false;
+    } else {
+      isMyTurn = true;
+    }
+    currentPlayer = 'black';
+    resetGame();
+    setConnStatus('connected', '已连接 ✅');
+    document.getElementById('btnLeave').hidden = false;
+    document.getElementById('roomInfo').innerHTML = `
+      <p>🔗 已连接！</p>
+      <p style="font-size:12px;">你是 <b>${myColor === 'black' ? '⚫ 黑棋' : '⚪ 白棋'}</b></p>
+    `;
+    document.getElementById('joinRow').style.display = 'none';
+    render();
+  });
+
+  c.on('data', (data) => {
+    handleOnlineMessage(data);
+  });
+
+  c.on('close', () => {
+    conn = null;
+    setConnStatus('disconnected', '对手断开连接');
+    document.getElementById('btnLeave').hidden = true;
+    gameOver = true;
+    toast('对手已离开 😢');
+    render();
+  });
+
+  c.on('error', (err) => {
+    console.error('Connection error:', err);
+  });
+}
+
+function handleOnlineMessage(data) {
+  switch (data.type) {
+    case 'move':
+      if (data.winner) {
+        board[data.row][data.col] = currentPlayer;
+        history.push({ row: data.row, col: data.col, player: currentPlayer });
+        lastMove = { row: data.row, col: data.col };
+        gameOver = true;
+        winner = data.winner;
+        winLine = checkWin(data.row, data.col, data.winner) || [];
+        isMyTurn = false;
+        render();
+        showWin(winner);
+      } else {
+        board[data.row][data.col] = currentPlayer;
+        history.push({ row: data.row, col: data.col, player: currentPlayer });
+        lastMove = { row: data.row, col: data.col };
+        currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+        isMyTurn = true;
+        winLine = [];
+        render();
+      }
+      break;
+
+    case 'undo-request':
+      showUndoRequest();
+      break;
+
+    case 'undo-approve':
+      // Undo two moves (opponent's and mine)
+      if (history.length >= 2) {
+        const h1 = history.pop();
+        board[h1.row][h1.col] = null;
+        const h2 = history.pop();
+        board[h2.row][h2.col] = null;
+        currentPlayer = h2.player;
+        lastMove = history.length > 0 ? history[history.length - 1] : null;
+        isMyTurn = (myColor === currentPlayer);
+        winLine = [];
+        render();
+        toast('悔棋成功 ↩');
+      }
+      pendingUndoRequest = false;
+      break;
+
+    case 'undo-deny':
+      toast('对手拒绝了悔棋 ❌');
+      pendingUndoRequest = false;
+      break;
+
+    case 'reset':
+      resetGame();
+      toast('对手发起了新一局 🆕');
+      break;
+  }
+}
+
+function leaveOnline() {
+  if (conn) { conn.close(); conn = null; }
+  if (peer) { peer.destroy(); peer = null; }
+  mode = 'local';
+  roomId = null;
+  myColor = null;
+  isMyTurn = true;
+  document.getElementById('onlinePanel').classList.remove('show');
+  document.getElementById('roomInfo').innerHTML = '';
+  document.getElementById('connStatus').innerHTML = '';
+  document.getElementById('btnLeave').hidden = true;
+  document.getElementById('joinRow').style.display = 'none';
+  document.getElementById('btnOnline').textContent = '🌐 在线对战';
+  setConnStatus('', '');
+  resetGame();
+}
+
+function toggleOnline() {
+  const panel = document.getElementById('onlinePanel');
+  if (panel.classList.contains('show')) {
+    leaveOnline();
+  } else {
+    panel.classList.add('show');
+    document.getElementById('btnOnline').textContent = '🔽 收起';
+  }
+}
+
+function updateOnlineUI() {
+  document.getElementById('onlinePanel').classList.add('show');
+  document.getElementById('btnOnline').textContent = '🔽 收起';
+}
+
+function setConnStatus(cls, msg) {
+  const el = document.getElementById('connStatus');
+  if (!msg) { el.innerHTML = ''; return; }
+  el.innerHTML = `<span class="conn-status ${cls}">${msg}</span>`;
+}
+
+// ==================== UI HELPERS ====================
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ==================== EVENT HANDLERS ====================
+canvas.addEventListener('click', (e) => {
+  if (gameOver) return;
+  if (mode === 'online' && !isMyTurn) {
+    toast('还没轮到你哦～');
+    return;
+  }
+
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = calcSize() / rect.width;
+  const scaleY = calcSize() / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  const cs = cellSize();
+  const pad = padding();
+  const col = Math.round((mx - pad) / cs);
+  const row = Math.round((my - pad) / cs);
+
+  if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return;
+
+  placePiece(row, col);
+});
+
+// Touch for mobile
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  if (gameOver) return;
+  if (mode === 'online' && !isMyTurn) { toast('还没轮到你哦～'); return; }
+
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = calcSize() / rect.width;
+  const scaleY = calcSize() / rect.height;
+  const mx = (touch.clientX - rect.left) * scaleX;
+  const my = (touch.clientY - rect.top) * scaleY;
+
+  const cs = cellSize();
+  const pad = padding();
+  const col = Math.round((mx - pad) / cs);
+  const row = Math.round((my - pad) / cs);
+
+  if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return;
+
+  placePiece(row, col);
+}, { passive: false });
+
+window.addEventListener('resize', setupCanvas);
+window.addEventListener('orientationchange', () => setTimeout(setupCanvas, 300));
+
+// Click overlay to dismiss win
+document.getElementById('winOverlay').addEventListener('click', function(e) {
+  if (e.target === this) resetGame();
+});
+
+// ==================== INIT ====================
+setupCanvas();
+</script>
+</body>
+</html>
