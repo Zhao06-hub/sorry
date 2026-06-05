@@ -5,836 +5,651 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>五子棋</title>
 <style>
-  :root {
-    --pink: #f8a5c2; --pink2: #ffd6e0; --bg: #fff0f5;
-  }
+  :root { --pink: #f8a5c2; }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     background: linear-gradient(135deg, #fce4ec, #fff0f5, #fce4ec);
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
     font-family: 'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
-    overflow-x: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    overflow-x: hidden; user-select: none; -webkit-user-select: none;
   }
-
-  /* ========== SCREENS ========== */
   .screen { width: 100%; max-width: 460px; padding: 16px; display: none; flex-direction: column; align-items: center; }
   .screen.active { display: flex; }
 
-  /* ========== HOME SCREEN ========== */
-  .home-title { font-size: 40px; margin: 20px 0 6px; }
-  .home-subtitle { font-size: 22px; font-weight: 700; color: #e87890; letter-spacing: 4px; margin-bottom: 30px; }
-  .home-btn {
+  /* Home */
+  .home-icon { font-size: 44px; margin: 16px 0 4px; }
+  .home-title { font-size: 24px; font-weight: 700; color: #e87890; letter-spacing: 4px; margin-bottom: 28px; }
+  .big-btn {
     width: 100%; max-width: 280px; border: none; border-radius: 50px; padding: 18px;
     font-size: 20px; font-weight: 700; letter-spacing: 2px; cursor: pointer;
-    margin: 8px 0; transition: all .2s; font-family: inherit;
+    margin: 6px 0; transition: all .2s; font-family: inherit;
     box-shadow: 0 6px 20px rgba(255,140,160,0.25);
   }
-  .home-btn:active { transform: scale(0.95); }
-  .btn-local {
-    background: linear-gradient(135deg, #f8a5c2, #e87890); color: #fff;
-  }
-  .btn-online {
-    background: #fff; color: #e87890; border: 3px solid #f8a5c2;
-  }
-  .home-footer { margin-top: 24px; font-size: 12px; color: #d4a0b0; letter-spacing: 1px; }
+  .big-btn:active { transform: scale(0.95); }
+  .big-btn.pink { background: linear-gradient(135deg, #f8a5c2, #e87890); color: #fff; }
+  .big-btn.white { background: #fff; color: #e87890; border: 3px solid #f8a5c2; }
+  .home-hint { margin-top: 20px; font-size: 11px; color: #d4a0b0; letter-spacing: 1px; }
 
-  /* ========== GAME SCREEN ========== */
-  .game-header {
-    display: flex; align-items: center; gap: 8px; width: 100%; margin-bottom: 4px;
+  /* Game */
+  .top-bar {
+    display: flex; align-items: center; width: 100%; margin-bottom: 4px;
   }
-  .back-btn {
+  .btn-back {
     background: rgba(255,255,255,0.6); border: none; border-radius: 50%;
     width: 36px; height: 36px; font-size: 18px; cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   }
-  .back-btn:active { transform: scale(0.9); }
-  .game-title {
-    flex: 1; text-align: center; font-size: 18px; font-weight: 700; color: #e87890;
-    letter-spacing: 2px;
+  .btn-back:active { transform: scale(0.9); }
+  .top-title {
+    flex: 1; text-align: center; font-size: 17px; font-weight: 700; color: #e87890; letter-spacing: 2px;
   }
-  .game-title span { font-size: 14px; }
-
   .board-wrap {
-    position: relative; background: rgba(255,255,255,0.5); border-radius: 24px;
-    padding: 6px; box-shadow: 0 8px 32px rgba(255,140,160,0.18);
-    display: flex; align-items: center; justify-content: center; touch-action: manipulation;
+    background: rgba(255,255,255,0.5); border-radius: 24px; padding: 6px;
+    box-shadow: 0 8px 32px rgba(255,140,160,0.18);
+    display: flex; align-items: center; justify-content: center;
   }
-  canvas { display: block; border-radius: 12px; }
+  canvas { display: block; border-radius: 12px; touch-action: manipulation; }
 
-  .status-bar {
-    display: flex; align-items: center; gap: 10px;
-    background: rgba(255,255,255,0.6); backdrop-filter: blur(10px);
-    border-radius: 16px; padding: 6px 16px; width: 100%; justify-content: center;
-    box-shadow: 0 2px 12px rgba(255,140,160,0.15);
-    font-weight: 600; font-size: 14px; color: #c96a7e; margin: 6px 0;
+  .status {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.6); border-radius: 14px; padding: 5px 14px;
+    width: 100%; justify-content: center; font-weight: 600; font-size: 13px; color: #c96a7e;
+    box-shadow: 0 2px 10px rgba(255,140,160,0.12); margin: 5px 0;
   }
-  .dot {
-    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  }
-  .dot.black { background: radial-gradient(circle at 35% 35%, #555, #111 60%, #000); }
-  .dot.white { background: radial-gradient(circle at 35% 35%, #fff, #e0e0e0 60%, #bbb); }
+  .dot { width: 20px; height: 20px; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.18); }
+  .dot.b { background: radial-gradient(circle at 35% 35%, #555, #111 60%, #000); }
+  .dot.w { background: radial-gradient(circle at 35% 35%, #fff, #e0e0e0 60%, #bbb); }
 
-  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; }
   .btn {
-    border: none; border-radius: 25px; padding: 10px 20px; font-size: 14px;
-    font-weight: 600; letter-spacing: 1px; cursor: pointer;
-    transition: all .2s; font-family: inherit;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    border: none; border-radius: 22px; padding: 9px 18px; font-size: 13px;
+    font-weight: 600; letter-spacing: 1px; cursor: pointer; font-family: inherit;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08); transition: all .15s;
   }
   .btn:active { transform: scale(0.95); }
   .btn-undo { background: #ffe0e6; color: #d4687c; }
   .btn-reset { background: #ffd1dc; color: #c06070; }
 
-  /* ========== ONLINE PANEL (inside game screen) ========== */
-  .online-panel {
-    background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);
-    border-radius: 20px; padding: 16px; width: 100%;
-    box-shadow: 0 4px 16px rgba(255,140,160,0.15);
-    display: none; flex-direction: column; gap: 10px; align-items: center;
+  /* Online panel */
+  .online-box {
+    background: rgba(255,255,255,0.7); border-radius: 18px; padding: 14px; width: 100%;
+    box-shadow: 0 4px 14px rgba(255,140,160,0.12); display: none; flex-direction: column; gap: 8px; align-items: center;
   }
-  .online-panel.show { display: flex; }
-  .input-row { display: flex; gap: 8px; width: 100%; }
-  .input-row input {
-    flex: 1; border: 2px solid #f8a5c2; border-radius: 20px; padding: 8px 14px;
-    font-size: 14px; outline: none; font-family: inherit; text-align: center;
-    letter-spacing: 2px;
+  .online-box.show { display: flex; }
+  .inp-row { display: flex; gap: 8px; width: 100%; }
+  .inp-row input {
+    flex: 1; border: 2px solid #f8a5c2; border-radius: 18px; padding: 8px 12px;
+    font-size: 14px; outline: none; font-family: inherit; text-align: center; letter-spacing: 2px;
   }
   .btn-sm {
-    border: none; border-radius: 20px; padding: 8px 16px; font-size: 13px;
+    border: none; border-radius: 18px; padding: 7px 14px; font-size: 12px;
     font-weight: 600; cursor: pointer; font-family: inherit;
     background: linear-gradient(135deg, #f8a5c2, #e87890); color: #fff;
-    box-shadow: 0 2px 8px rgba(255,140,160,0.3); white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(255,140,160,0.3); white-space: nowrap;
   }
   .btn-sm:active { transform: scale(0.95); }
-  .btn-copy {
-    background: #fff; color: #e87890; border: 2px solid #f8a5c2;
+  .btn-sm.outline { background: #fff; color: #e87890; border: 2px solid #f8a5c2; }
+  .room-code {
+    background: #ffe0e6; padding: 4px 14px; border-radius: 12px;
+    font-size: 17px; letter-spacing: 3px; font-weight: 700; color: #c06070; word-break: break-all;
   }
-  .room-info {
-    font-size: 13px; color: #c96a7e; text-align: center; line-height: 1.6;
-  }
-  .room-info code {
-    background: #ffe0e6; padding: 3px 10px; border-radius: 10px;
-    font-size: 16px; letter-spacing: 3px; font-weight: 700; word-break: break-all;
-  }
-  .badge {
-    display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 600;
-  }
-  .badge.ok { background: #d4edda; color: #2d7a3f; }
-  .badge.wait { background: #fff3cd; color: #856404; animation: pulse 1.5s infinite; }
-  .badge.err { background: #f8d7da; color: #721c24; }
+  .tag { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 600; }
+  .tag.green { background: #d4edda; color: #2d7a3f; }
+  .tag.yellow { background: #fff3cd; color: #856404; animation: pulse 1.5s infinite; }
+  .tag.red { background: #f8d7da; color: #721c24; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  /* ========== TOAST ========== */
+  /* Overlays */
   .toast {
     position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.8); color: #fff; padding: 10px 24px;
-    border-radius: 25px; font-size: 14px; z-index: 9999;
-    pointer-events: none; opacity: 0; transition: opacity .3s;
+    background: rgba(0,0,0,0.82); color: #fff; padding: 10px 22px;
+    border-radius: 22px; font-size: 13px; z-index: 9999; pointer-events: none;
+    opacity: 0; transition: opacity .3s;
   }
   .toast.show { opacity: 1; }
-
-  /* ========== MODAL ========== */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-    display: none; align-items: center; justify-content: center; z-index: 100;
+  .modal-ov {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100;
+    display: none; align-items: center; justify-content: center;
   }
-  .modal-overlay.show { display: flex; }
+  .modal-ov.show { display: flex; }
   .modal {
-    background: #fff; border-radius: 24px; padding: 24px; text-align: center;
-    max-width: 310px; width: 90%; box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    background: #fff; border-radius: 22px; padding: 22px; text-align: center;
+    max-width: 300px; width: 88%; box-shadow: 0 12px 36px rgba(0,0,0,0.2);
   }
-  .modal h3 { color: #e87890; margin-bottom: 6px; font-size: 19px; }
-  .modal p { color: #666; margin-bottom: 14px; font-size: 13px; }
-  .modal .btn-row { gap: 12px; }
-
-  /* ========== WIN OVERLAY ========== */
-  .win-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    display: none; align-items: center; justify-content: center; z-index: 200;
-    flex-direction: column; gap: 14px;
+  .modal h3 { color: #e87890; margin-bottom: 4px; font-size: 18px; }
+  .modal p { color: #666; margin-bottom: 12px; font-size: 13px; }
+  .win-ov {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+    display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
   }
-  .win-overlay.show { display: flex; }
-  .win-text {
-    font-size: 34px; font-weight: 900; color: #fff;
-    text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 4px 8px rgba(0,0,0,0.3);
-    animation: popIn .5s ease-out;
+  .win-ov.show { display: flex; }
+  .win-txt {
+    font-size: 32px; font-weight: 900; color: #fff;
+    text-shadow: 0 0 18px rgba(255,215,0,0.8), 0 4px 8px rgba(0,0,0,0.3);
+    animation: pop .5s ease-out;
   }
-  @keyframes popIn { 0%{transform:scale(0);opacity:0} 70%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1} }
-
-  /* ========== CONNECTION QUALITY ========== */
-  .conn-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
-  .conn-dot.good { background: #4caf50; }
-  .conn-dot.bad { background: #ff9800; }
+  @keyframes pop { 0%{transform:scale(0);opacity:0} 70%{transform:scale(1.12)} 100%{transform:scale(1);opacity:1} }
 
   @media (max-width: 380px) {
-    .home-title { font-size: 32px; }
-    .home-subtitle { font-size: 18px; }
-    .home-btn { font-size: 17px; padding: 14px; max-width: 240px; }
-    .btn { padding: 8px 14px; font-size: 12px; }
-    .status-bar { font-size: 12px; padding: 4px 12px; }
+    .home-icon { font-size: 34px; }
+    .home-title { font-size: 20px; }
+    .big-btn { font-size: 17px; padding: 14px; max-width: 240px; }
+    .btn { padding: 7px 12px; font-size: 11px; }
   }
 </style>
 </head>
 <body>
 
-<!-- ==================== HOME SCREEN ==================== -->
-<div class="screen active" id="homeScreen">
-  <div class="home-title">🀄️</div>
-  <div class="home-subtitle">五 子 棋</div>
-  <button class="home-btn btn-local" onclick="startLocal()">👥 本地对战</button>
-  <button class="home-btn btn-online" onclick="startOnline()">🌐 在线联机</button>
-  <div class="home-footer">同一设备 • 或 • 远程连线</div>
+<!-- ===== HOME ===== -->
+<div class="screen active" id="home">
+  <div class="home-icon">🀄️</div>
+  <div class="home-title">五 子 棋</div>
+  <button class="big-btn pink" onclick="startGame('local')">👥 本地对战</button>
+  <button class="big-btn white" onclick="startGame('online')">🌐 在线联机</button>
+  <div class="home-hint">同一设备 · 或 · 远程连线</div>
 </div>
 
-<!-- ==================== GAME SCREEN ==================== -->
-<div class="screen" id="gameScreen">
-  <div class="game-header">
-    <button class="back-btn" onclick="goHome()">←</button>
-    <div class="game-title" id="gameTitle">本地对战</div>
+<!-- ===== GAME ===== -->
+<div class="screen" id="game">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goHome()">←</button>
+    <div class="top-title" id="topTitle">本地对战</div>
     <div style="width:36px;"></div>
   </div>
 
   <div class="board-wrap"><canvas id="board"></canvas></div>
 
-  <div class="status-bar">
-    <div class="dot black" id="turnDot"></div>
-    <span id="statusText">⚫ 黑棋回合</span>
-    <span style="font-size:11px;color:#b0a0a8;" id="moveCount">第 0 手</span>
+  <div class="status">
+    <div class="dot b" id="turnDot"></div>
+    <span id="turnText">⚫ 黑棋回合</span>
+    <span style="font-size:10px;color:#b0a0a8;" id="handCount">第 0 手</span>
   </div>
 
-  <div class="btn-row" id="gameBtns">
-    <button class="btn btn-undo" onclick="requestUndo()">↩ 悔棋</button>
-    <button class="btn btn-reset" onclick="resetGame()">🔄 重新开始</button>
+  <div class="btn-row" id="btnRow">
+    <button class="btn btn-undo" onclick="clickUndo()">↩ 悔棋</button>
+    <button class="btn btn-reset" onclick="clickReset()">🔄 重新开始</button>
   </div>
 
-  <!-- Online panel -->
-  <div class="online-panel" id="onlinePanel">
-    <div id="onlineBefore" style="display:flex;flex-direction:column;gap:8px;width:100%;align-items:center;">
+  <div class="online-box" id="onlineBox">
+    <div id="onlineInit" style="display:flex;flex-direction:column;gap:6px;width:100%;align-items:center;">
       <div class="btn-row">
         <button class="btn-sm" onclick="createRoom()">🏠 创建房间</button>
-        <button class="btn-sm" onclick="toggleJoinInput()">🚪 加入房间</button>
+        <button class="btn-sm outline" onclick="toggleJoin()">🚪 加入房间</button>
       </div>
-      <div class="input-row" id="joinRow" style="display:none;">
-        <input type="text" id="roomInput" placeholder="输入房间号" maxlength="30" autocomplete="off">
+      <div class="inp-row" id="joinRow" style="display:none;">
+        <input id="roomInp" placeholder="输入6位房间号" maxlength="6" autocomplete="off">
         <button class="btn-sm" onclick="joinRoom()">加入</button>
       </div>
     </div>
-    <div id="onlineAfter" style="display:none;flex-direction:column;gap:8px;width:100%;align-items:center;">
-      <div class="room-info" id="roomInfo"></div>
-      <div id="connBadge"></div>
+    <div id="onlineInfo" style="display:none;flex-direction:column;gap:6px;width:100%;align-items:center;">
+      <div class="room-code" id="roomCode"></div>
+      <div id="tagArea"></div>
       <div class="btn-row">
-        <button class="btn-sm btn-copy" id="btnCopyRoom" onclick="copyRoomId()">📋 复制房间号</button>
-        <button class="btn-sm" style="background:#ffd1dc;color:#c06070;" onclick="leaveOnline()">🚪 离开房间</button>
+        <button class="btn-sm outline" id="btnCopy" onclick="copyRoom()">📋 复制房间号</button>
+        <button class="btn-sm" style="background:#ffd1dc;color:#c06070;" onclick="leaveOnline()">🚪 离开</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ==================== OVERLAYS ==================== -->
+<!-- ===== OVERLAYS ===== -->
 <div class="toast" id="toast"></div>
-
-<div class="modal-overlay" id="undoModal">
+<div class="modal-ov" id="undoModal">
   <div class="modal">
     <h3>🤔 对手请求悔棋</h3>
-    <p>是否同意撤销上一步？</p>
+    <p>是否同意？</p>
     <div class="btn-row">
-      <button class="btn btn-local" style="background:#f8a5c2;color:#fff;" onclick="answerUndo(true)">✅ 同意</button>
-      <button class="btn btn-reset" onclick="answerUndo(false)">❌ 拒绝</button>
+      <button class="btn btn-undo" style="background:#f8a5c2;color:#fff;" onclick="replyUndo(true)">✅ 同意</button>
+      <button class="btn btn-reset" onclick="replyUndo(false)">❌ 拒绝</button>
     </div>
   </div>
 </div>
-
-<div class="win-overlay" id="winOverlay">
-  <div class="win-text" id="winText"></div>
-  <button class="btn btn-reset" style="background:#fff;font-size:16px;" onclick="resetGame()">🔄 再来一局</button>
+<div class="win-ov" id="winOverlay">
+  <div class="win-txt" id="winText"></div>
+  <button class="btn btn-reset" style="background:#fff;font-size:15px;" onclick="clickReset()">🔄 再来一局</button>
 </div>
 
-<!-- ==================== SCRIPTS ==================== -->
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<!-- ===== MQTT ===== -->
+<script src="https://cdn.jsdelivr.net/npm/mqtt@4.3.8/dist/mqtt.min.js"></script>
 <script>
-// ==============================
-// SCREEN SWITCHING
-// ==============================
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function goHome() {
-  leaveOnline();
-  showScreen('homeScreen');
-}
-
-// ==============================
-// CONSTANTS
-// ==============================
+// ==================== CONST ====================
 const N = 15;
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 
-// ==============================
-// GAME STATE
-// ==============================
-let board, currentPlayer, history, gameOver, winner, winLine, lastMove;
-let mode = 'local';         // 'local' | 'online'
-let myColor = null;         // 'black' | 'white'
-let isMyTurn = true;
+// ==================== STATE ====================
+let board, turn, history, over, winner, winCells, last;
+let mode = 'local';    // local | online
+let myColor = null;
+let myTurn = true;
 
 // Online
-let peer = null;
-let conn = null;
-let roomId = null;           // creator's peer ID (to share)
+let mqtt = null;
+let roomId = null;
+let mqttConnected = false;
 
-function freshBoard() {
-  return Array(N).fill(null).map(() => Array(N).fill(null));
-}
-
-function initState() {
-  board = freshBoard();
-  currentPlayer = 'black';
-  history = [];
-  gameOver = false;
-  winner = null;
-  winLine = [];
-  lastMove = null;
-  isMyTurn = (mode === 'local' || myColor === 'black');
+function fresh() { return Array(N).fill(null).map(() => Array(N).fill(null)); }
+function initGame() {
+  board = fresh(); turn = 'black'; history = []; over = false;
+  winner = null; winCells = []; last = null;
+  myTurn = (mode === 'local' || myColor === 'black');
   document.getElementById('winOverlay').classList.remove('show');
 }
 
-// ==============================
-// CANVAS
-// ==============================
-let _size, _cs, _pad;
-function recalc() {
-  const maxW = Math.min(window.innerWidth - 40, 400);
-  const maxH = Math.min(window.innerHeight * 0.42, 400);
-  _size = Math.floor(Math.min(maxW, maxH));
-  _cs = (_size * 0.88) / (N - 1);
-  _pad = (_size - _cs * (N - 1)) / 2;
+// ==================== CANVAS ====================
+let sz, cs, pd;
+function recompute() {
+  const mx = Math.min(window.innerWidth - 36, 400);
+  const my = Math.min(window.innerHeight * 0.42, 400);
+  sz = Math.floor(Math.min(mx, my));
+  cs = (sz * 0.88) / (N - 1);
+  pd = (sz - cs * (N - 1)) / 2;
 }
-function bx(c) { return _pad + c * _cs; }
-function by(r) { return _pad + r * _cs; }
+function cx(c) { return pd + c * cs; }
+function cy(r) { return pd + r * cs; }
 
-function setupCanvas() {
-  recalc();
+function resize() {
+  recompute();
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.style.width  = _size + 'px';
-  canvas.style.height = _size + 'px';
-  canvas.width  = _size * dpr;
-  canvas.height = _size * dpr;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.scale(dpr, dpr);
-  draw();
+  canvas.style.width = sz + 'px'; canvas.style.height = sz + 'px';
+  canvas.width = sz * dpr; canvas.height = sz * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
+  render();
 }
 
-function draw() {
-  recalc();
-  ctx.clearRect(0, 0, _size, _size);
+function render() {
+  recompute();
+  ctx.clearRect(0, 0, sz, sz);
 
-  // Board bg
-  const g = ctx.createLinearGradient(0, 0, _size, _size);
-  g.addColorStop(0, '#f5e6d3'); g.addColorStop(0.5, '#faf0e0'); g.addColorStop(1, '#f0dcc0');
+  // Board
+  const g = ctx.createLinearGradient(0, 0, sz, sz);
+  g.addColorStop(0,'#f5e6d3'); g.addColorStop(0.5,'#faf0e0'); g.addColorStop(1,'#f0dcc0');
   ctx.fillStyle = g;
-  ctx.beginPath(); ctx.roundRect(_pad - _cs * 0.4, _pad - _cs * 0.4, _cs * (N - 1) + _cs * 0.8, _cs * (N - 1) + _cs * 0.8, 12); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(pd - cs * 0.4, pd - cs * 0.4, cs * (N - 1) + cs * 0.8, cs * (N - 1) + cs * 0.8, 10); ctx.fill();
 
-  // Grid
   ctx.strokeStyle = '#c8a882'; ctx.lineWidth = 1;
   for (let i = 0; i < N; i++) {
-    ctx.beginPath(); ctx.moveTo(bx(0), by(i)); ctx.lineTo(bx(N - 1), by(i)); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bx(i), by(0)); ctx.lineTo(bx(i), by(N - 1)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx(0), cy(i)); ctx.lineTo(cx(N - 1), cy(i)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx(i), cy(0)); ctx.lineTo(cx(i), cy(N - 1)); ctx.stroke();
   }
 
   // Stars
-  const stars = [[3,3],[3,7],[3,11],[7,3],[7,7],[7,11],[11,3],[11,7],[11,11]];
-  ctx.fillStyle = '#c8a882';
-  stars.forEach(([r, c]) => { ctx.beginPath(); ctx.arc(bx(c), by(r), _cs * 0.12, 0, Math.PI * 2); ctx.fill(); });
+  [[3,3],[3,7],[3,11],[7,3],[7,7],[7,11],[11,3],[11,7],[11,11]].forEach(([r,c]) => {
+    ctx.fillStyle = '#c8a882'; ctx.beginPath(); ctx.arc(cx(c), cy(r), cs * 0.12, 0, Math.PI * 2); ctx.fill();
+  });
 
-  // Win highlight
-  if (winLine.length) {
-    winLine.forEach(({row, col}) => {
+  // Win cells
+  if (winCells.length) {
+    winCells.forEach(({r,c}) => {
       ctx.fillStyle = 'rgba(255,215,0,0.45)';
-      ctx.beginPath(); ctx.arc(bx(col), by(row), _cs * 0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx(c), cy(r), cs * 0.5, 0, Math.PI * 2); ctx.fill();
     });
   }
 
   // Pieces
-  for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) {
-      if (!board[r][c]) continue;
-      const x = bx(c), y = by(r), rad = _cs * 0.43;
-      const pg = ctx.createRadialGradient(x - rad * 0.3, y - rad * 0.3, rad * 0.05, x, y, rad);
-      if (board[r][c] === 'black') {
-        pg.addColorStop(0, '#666'); pg.addColorStop(0.5, '#333'); pg.addColorStop(1, '#111');
-      } else {
-        pg.addColorStop(0, '#fff'); pg.addColorStop(0.5, '#f0f0f0'); pg.addColorStop(1, '#c0c0c0');
-      }
-      ctx.fillStyle = pg;
-      ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
-    }
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if (!board[r][c]) continue;
+    const x = cx(c), y = cy(r), rad = cs * 0.43;
+    const pg = ctx.createRadialGradient(x - rad * 0.3, y - rad * 0.3, rad * 0.05, x, y, rad);
+    if (board[r][c] === 'black') { pg.addColorStop(0,'#666'); pg.addColorStop(0.5,'#333'); pg.addColorStop(1,'#111'); }
+    else { pg.addColorStop(0,'#fff'); pg.addColorStop(0.5,'#f0f0f0'); pg.addColorStop(1,'#c0c0c0'); }
+    ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
   }
 
-  // Last move marker
-  if (lastMove && board[lastMove.row]?.[lastMove.col]) {
-    const x = bx(lastMove.col), y = by(lastMove.row);
-    ctx.fillStyle = board[lastMove.row][lastMove.col] === 'black' ? '#ff6b6b' : '#e87890';
-    ctx.beginPath(); ctx.arc(x, y, _cs * 0.13, 0, Math.PI * 2); ctx.fill();
+  // Last marker
+  if (last && board[last.r]?.[last.c]) {
+    const x = cx(last.c), y = cy(last.r);
+    ctx.fillStyle = board[last.r][last.c] === 'black' ? '#ff6b6b' : '#e87890';
+    ctx.beginPath(); ctx.arc(x, y, cs * 0.12, 0, Math.PI * 2); ctx.fill();
   }
-
-  updateUI();
+  updateBar();
 }
 
-function updateUI() {
-  const dot = document.getElementById('turnDot');
-  const txt = document.getElementById('statusText');
-  const cnt = document.getElementById('moveCount');
-  cnt.textContent = `第 ${history.length} 手`;
-
-  if (gameOver) {
-    dot.className = 'dot ' + (winner === 'black' ? 'black' : 'white');
-    txt.textContent = winner === 'black' ? '🏆 黑棋获胜！' : '🏆 白棋获胜！';
+function updateBar() {
+  const d = document.getElementById('turnDot');
+  const t = document.getElementById('turnText');
+  document.getElementById('handCount').textContent = `第 ${history.length} 手`;
+  if (over) {
+    d.className = 'dot ' + (winner === 'black' ? 'b' : 'w');
+    t.textContent = winner === 'black' ? '🏆 黑棋获胜！' : '🏆 白棋获胜！';
   } else {
-    dot.className = 'dot ' + currentPlayer;
-    const cn = currentPlayer === 'black' ? '⚫ 黑棋' : '⚪ 白棋';
-    if (mode === 'online') {
-      txt.textContent = isMyTurn ? `你的回合 (${cn})` : `等待对手 (${cn})`;
-    } else {
-      txt.textContent = `${cn}回合`;
-    }
+    d.className = 'dot ' + (turn === 'black' ? 'b' : 'w');
+    const nm = turn === 'black' ? '⚫ 黑棋' : '⚪ 白棋';
+    t.textContent = (mode === 'online' && !myTurn) ? `等待对手 (${nm})` : `${nm}回合`;
   }
 }
 
-// ==============================
-// GAME LOGIC
-// ==============================
-function tryPlace(row, col) {
-  if (gameOver) return false;
-  if (row < 0 || row >= N || col < 0 || col >= N) return false;
-  if (board[row][col]) return false;
-  if (mode === 'online' && !isMyTurn) { toast('还没轮到你～'); return false; }
+// ==================== GAME LOGIC ====================
+function place(r, c) {
+  if (over) return false;
+  if (r < 0 || r >= N || c < 0 || c >= N) return false;
+  if (board[r][c]) return false;
+  if (mode === 'online' && !myTurn) { toast('还没轮到你～'); return false; }
 
-  // Place
-  board[row][col] = currentPlayer;
-  history.push({ row, col, player: currentPlayer });
-  lastMove = { row, col };
+  board[r][c] = turn;
+  history.push({ r, c, p: turn });
+  last = { r, c };
 
-  // Check win
-  const wl = checkWin(row, col, currentPlayer);
+  const wl = checkWin(r, c, turn);
   if (wl) {
-    gameOver = true; winner = currentPlayer; winLine = wl;
-    draw();
-    showWin();
-    if (mode === 'online' && conn) send({ type: 'move', row, col, player: currentPlayer, winner: currentPlayer });
+    over = true; winner = turn; winCells = wl;
+    render(); showWin();
+    if (mode === 'online') pub('move', { r, c, p: turn, winner: turn });
     return true;
   }
 
-  // Switch
-  currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+  turn = turn === 'black' ? 'white' : 'black';
   if (mode === 'online') {
-    isMyTurn = false;
-    if (conn) send({ type: 'move', row, col, player: currentPlayer === 'black' ? 'white' : 'black' });
+    myTurn = false;
+    pub('move', { r, c, p: turn === 'black' ? 'white' : 'black' });
   }
-  draw();
+  render();
   return true;
 }
 
-function checkWin(row, col, player) {
+function checkWin(r, c, p) {
   const dirs = [[0,1],[1,0],[1,1],[1,-1]];
-  for (const [dr, dc] of dirs) {
-    const line = [{row, col}];
-    for (let i = 1; i < 5; i++) { const r = row + dr * i, c = col + dc * i; if (r < 0 || r >= N || c < 0 || c >= N || board[r][c] !== player) break; line.push({row: r, col: c}); }
-    for (let i = 1; i < 5; i++) { const r = row - dr * i, c = col - dc * i; if (r < 0 || r >= N || c < 0 || c >= N || board[r][c] !== player) break; line.unshift({row: r, col: c}); }
+  for (const [dr,dc] of dirs) {
+    const line = [{r,c}];
+    for (let i = 1; i < 5; i++) { const nr = r + dr * i, nc = c + dc * i; if (nr < 0 || nr >= N || nc < 0 || nc >= N || board[nr][nc] !== p) break; line.push({r: nr, c: nc}); }
+    for (let i = 1; i < 5; i++) { const nr = r - dr * i, nc = c - dc * i; if (nr < 0 || nr >= N || nc < 0 || nc >= N || board[nr][nc] !== p) break; line.unshift({r: nr, c: nc}); }
     if (line.length >= 5) return line;
   }
   return null;
 }
 
-function doUndo() {
+function execUndo() {
   if (!history.length) return false;
-  const last = history.pop();
-  board[last.row][last.col] = null;
-  currentPlayer = last.player;
-  lastMove = history.length > 0 ? history[history.length - 1] : null;
-  winLine = [];
-  if (mode === 'online') isMyTurn = (myColor === currentPlayer);
-  draw();
+  const mv = history.pop();
+  board[mv.r][mv.c] = null;
+  turn = mv.p;
+  last = history.length > 0 ? history[history.length - 1] : null;
+  winCells = [];
+  if (mode === 'online') myTurn = (myColor === turn);
+  render();
   return true;
 }
 
-function requestUndo() {
-  if (gameOver) { toast('游戏已结束'); return; }
+function clickUndo() {
+  if (over) { toast('游戏已结束'); return; }
   if (!history.length) { toast('没有可悔的棋'); return; }
-  if (mode === 'local') {
-    doUndo();
-    toast('已悔棋 ↩');
-  } else {
-    if (!conn) { toast('未连接'); return; }
-    send({ type: 'undo-request' });
-    toast('已发送悔棋请求 📩');
-  }
+  if (mode === 'local') { execUndo(); toast('已悔棋 ↩'); }
+  else if (mode === 'online') { pub('undo-req', {}); toast('已发送悔棋请求 📩'); }
 }
 
-function answerUndo(ok) {
+function replyUndo(ok) {
   document.getElementById('undoModal').classList.remove('show');
-  if (conn) {
-    send({ type: ok ? 'undo-approve' : 'undo-deny' });
-    if (ok) { doUndo(); }
-  }
+  if (ok) execUndo();
+  pub('undo-rep', { ok });
 }
 
-function showUndoModal() {
-  document.getElementById('undoModal').classList.add('show');
-}
-
-function resetGame() {
-  initState();
-  if (mode === 'online' && conn) send({ type: 'reset' });
-  draw();
+function clickReset() {
+  if (mode === 'online') pub('reset', {});
+  initGame(); render();
 }
 
 function showWin() {
   const ov = document.getElementById('winOverlay');
-  const wt = document.getElementById('winText');
   ov.classList.add('show');
-  if (mode === 'online') {
-    wt.textContent = (winner === myColor) ? '🎉 你赢了！' : '😢 你输了';
-  } else {
-    wt.textContent = (winner === 'black') ? '🏆 黑棋获胜！' : '🏆 白棋获胜！';
-  }
+  const t = document.getElementById('winText');
+  if (mode === 'online') t.textContent = (winner === myColor) ? '🎉 你赢了！' : '😢 你输了';
+  else t.textContent = (winner === 'black') ? '🏆 黑棋获胜！' : '🏆 白棋获胜！';
 }
 
-// ==============================
-// ONLINE — PEERJS
-// ==============================
-let peerReady = false;
+// ==================== ONLINE - MQTT ====================
+const BROKER = 'wss://broker.emqx.io:8084/mqtt';
 
-function ensurePeer() {
+function rndId() {
+  const ch = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 6; i++) s += ch[Math.floor(Math.random() * ch.length)];
+  return s;
+}
+
+function pub(type, payload) {
+  if (!mqtt || !mqttConnected || !roomId) return;
+  mqtt.publish(`gomoku/${roomId}/${type}`, JSON.stringify(payload), { qos: 1 });
+}
+
+function connectMQTT() {
   return new Promise((resolve, reject) => {
-    if (peer && !peer.destroyed && peerReady) { resolve(peer); return; }
-    if (peer) { peer.destroy(); peer = null; peerReady = false; }
-    try {
-      peer = new Peer({ debug: 0 });
-      peer.on('open', (id) => {
-        peerReady = true;
-        resolve(peer);
-      });
-      peer.on('error', (err) => {
-        peerReady = false;
-        reject(err);
-      });
-      peer.on('connection', (c) => {
-        // Someone is connecting to us (we are the creator)
-        if (conn) { c.close(); return; }
-        setupConn(c);
-        toast('对手已加入！🎮');
-      });
-      peer.on('disconnected', () => {
-        peer.reconnect();
-      });
-    } catch (e) { reject(e); }
+    if (mqtt && mqttConnected) { resolve(); return; }
+    if (mqtt) { try { mqtt.end(true); } catch(e) {} mqtt = null; mqttConnected = false; }
+
+    const clientId = 'gomoku_' + Math.random().toString(36).slice(2, 8);
+    mqtt = mqtt.connect(BROKER, {
+      clientId,
+      keepalive: 30,
+      connectTimeout: 8000,
+      clean: true,
+    });
+
+    const timeout = setTimeout(() => {
+      reject(new Error('连接超时，请检查网络'));
+    }, 10000);
+
+    mqtt.on('connect', () => {
+      clearTimeout(timeout);
+      mqttConnected = true;
+      resolve();
+    });
+
+    mqtt.on('error', (err) => {
+      clearTimeout(timeout);
+      mqttConnected = false;
+      reject(err);
+    });
+
+    mqtt.on('close', () => {
+      mqttConnected = false;
+    });
+
+    mqtt.on('message', (topic, payload) => {
+      try {
+        const data = JSON.parse(payload.toString());
+        const msgType = topic.split('/').pop();
+        handleMsg(msgType, data);
+      } catch (e) {}
+    });
   });
 }
 
-function setupConn(c) {
-  conn = c;
-  c.on('open', () => {
-    // Connection established
-    // Determine color: the first message will tell us
-    // Creator sends handshake, joiner waits
-    updateConnUI();
+function subscribeTopics() {
+  if (!mqtt || !mqttConnected || !roomId) return;
+  const types = ['move', 'undo-req', 'undo-rep', 'reset', 'joined'];
+  types.forEach(t => {
+    mqtt.subscribe(`gomoku/${roomId}/${t}`, { qos: 1 });
   });
-  c.on('data', handleMsg);
-  c.on('close', () => {
-    conn = null;
-    updateConnUI();
-    if (mode === 'online') {
-      toast('对手已断开 😢');
-      gameOver = true;
-      draw();
-    }
-  });
-  c.on('error', (e) => { console.error('Conn err:', e); });
+  setBadge('green', '✅ 已连接');
 }
 
-async function createRoom() {
-  if (conn) { toast('已在房间中'); return; }
-  try {
-    const p = await ensurePeer();
-    roomId = p.id;
-    myColor = 'black';
-    isMyTurn = true;
-    mode = 'online';
-
-    // Show room info
-    document.getElementById('roomInfo').innerHTML = `<p>📋 房间号：<br><code>${roomId}</code></p><p style="font-size:11px;">复制房间号发给好友</p>`;
-    document.getElementById('onlineBefore').style.display = 'none';
-    document.getElementById('onlineAfter').style.display = 'flex';
-    document.getElementById('onlinePanel').classList.add('show');
-    setBadge('wait', '⏳ 等待对手加入...');
-    document.getElementById('gameTitle').innerHTML = '在线联机 <span style="font-size:11px;color:#999;">⚫ 黑棋</span>';
-    initState();
-    draw();
-    toast('房间已创建，等待对手加入');
-  } catch (e) {
-    toast('创建失败：' + e.message);
-    console.error(e);
-  }
-}
-
-function toggleJoinInput() {
-  const row = document.getElementById('joinRow');
-  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
-  if (row.style.display === 'flex') document.getElementById('roomInput').focus();
-}
-
-async function joinRoom() {
-  const rid = document.getElementById('roomInput').value.trim();
-  if (!rid) { toast('请输入房间号'); return; }
-  if (conn) { toast('已在房间中'); return; }
-
-  try {
-    const p = await ensurePeer();
-    const c = p.connect(rid, { reliable: true });
-    setupConn(c);
-    roomId = rid;
-    myColor = 'white';
-    isMyTurn = false;
-    mode = 'online';
-    document.getElementById('roomInfo').innerHTML = `<p>🔗 已连接到房间</p>`;
-    document.getElementById('onlineBefore').style.display = 'none';
-    document.getElementById('onlineAfter').style.display = 'flex';
-    document.getElementById('onlinePanel').classList.add('show');
-    document.getElementById('gameTitle').innerHTML = '在线联机 <span style="font-size:11px;color:#999;">⚪ 白棋</span>';
-    initState();
-    draw();
-    setBadge('wait', '⏳ 等待连接...');
-    toast('正在连接房间...');
-  } catch (e) {
-    toast('加入失败：' + e.message);
-    console.error(e);
-  }
-}
-
-function updateConnUI() {
-  if (conn) {
-    document.getElementById('onlineBefore').style.display = 'none';
-    document.getElementById('onlineAfter').style.display = 'flex';
-    document.getElementById('onlinePanel').classList.add('show');
-    if (myColor === 'black') {
-      setBadge('ok', '✅ 对手已连接');
-      document.getElementById('gameTitle').innerHTML = '在线联机 <span style="font-size:11px;color:#999;">⚫ 黑棋</span>';
-    } else {
-      setBadge('ok', '✅ 已连接');
-      document.getElementById('gameTitle').innerHTML = '在线联机 <span style="font-size:11px;color:#999;">⚪ 白棋</span>';
-    }
-    // Send handshake
-    send({ type: 'handshake', from: myColor });
-  } else {
-    document.getElementById('onlineAfter').style.display = 'none';
-    document.getElementById('onlineBefore').style.display = 'flex';
-    document.getElementById('onlinePanel').classList.remove('show');
-    document.getElementById('gameTitle').textContent = '在线联机';
-    setBadge('', '');
-  }
-}
-
-function handleMsg(data) {
-  if (!data || !data.type) return;
-
-  switch (data.type) {
-    case 'handshake':
-      // Both sides now know connection is established
-      if (myColor === 'black' && data.from === 'white') {
-        // Creator received joiner's handshake ack
-        setBadge('ok', '✅ 对手已连接');
-        toast('对手已加入！开始对局 🎮');
-        initState();
-        draw();
-      } else if (myColor === 'white' && data.from === 'black') {
-        // Joiner received creator's handshake
-        send({ type: 'handshake', from: 'white' });
-        setBadge('ok', '✅ 已连接');
-        toast('已连接！开始对局 🎮');
-        initState();
-        draw();
-      }
+function handleMsg(type, data) {
+  switch (type) {
+    case 'joined':
+      // Other player joined
+      setBadge('green', '✅ 对手已加入');
+      toast('对手已加入！开始对局 🎮');
+      initGame(); render();
       break;
 
     case 'move':
-      {
-        const { row, col, player, winner: w } = data;
-        if (board[row][col]) break; // Already placed
-        board[row][col] = player;
-        history.push({ row, col, player });
-        lastMove = { row, col };
-
-        if (w) {
-          gameOver = true; winner = w;
-          winLine = checkWin(row, col, w) || [];
-          isMyTurn = false;
-          draw();
-          showWin();
-        } else {
-          currentPlayer = player === 'black' ? 'white' : 'black';
-          isMyTurn = true;
-          winLine = [];
-          draw();
-        }
+      if (data.winner) {
+        board[data.r][data.c] = data.p;
+        history.push({ r: data.r, c: data.c, p: data.p });
+        last = { r: data.r, c: data.c };
+        over = true; winner = data.winner;
+        winCells = checkWin(data.r, data.c, data.winner) || [];
+        myTurn = false;
+        render(); showWin();
+      } else {
+        board[data.r][data.c] = data.p;
+        history.push({ r: data.r, c: data.c, p: data.p });
+        last = { r: data.r, c: data.c };
+        turn = data.p === 'black' ? 'white' : 'black';
+        myTurn = true;
+        winCells = [];
+        render();
       }
       break;
 
-    case 'undo-request':
-      showUndoModal();
+    case 'undo-req':
+      document.getElementById('undoModal').classList.add('show');
       break;
 
-    case 'undo-approve':
-      doUndo();
-      toast('悔棋成功 ↩');
-      break;
-
-    case 'undo-deny':
-      toast('对手拒绝了悔棋 ❌');
+    case 'undo-rep':
+      if (data.ok) { execUndo(); toast('悔棋成功 ↩'); }
+      else { toast('对手拒绝了悔棋 ❌'); }
       break;
 
     case 'reset':
-      if (gameOver || confirm('对手发起新一局，开始？')) {
-        initState();
-        draw();
-        toast('🆕 新一局开始！');
-      }
+      initGame(); render();
+      toast('🆕 新一局开始！');
       break;
   }
 }
 
-function send(obj) {
-  if (conn && conn.open) {
-    conn.send(obj);
+async function createRoom() {
+  if (mqttConnected) { toast('已在房间中'); return; }
+  try {
+    await connectMQTT();
+    roomId = rndId();
+    subscribeTopics();
+    myColor = 'black'; myTurn = true; mode = 'online';
+    initGame(); render();
+
+    document.getElementById('roomCode').textContent = roomId;
+    document.getElementById('onlineInit').style.display = 'none';
+    document.getElementById('onlineInfo').style.display = 'flex';
+    document.getElementById('onlineBox').classList.add('show');
+    document.getElementById('topTitle').innerHTML = '在线联机 · ⚫ 黑棋';
+    setBadge('yellow', '⏳ 等待对手加入...');
+    toast('房间已创建，复制房间号发给好友');
+  } catch (e) {
+    toast('连接失败：' + e.message);
+    mqtt = null; mqttConnected = false;
   }
 }
 
-function copyRoomId() {
-  if (!roomId) { toast('暂无房间号'); return; }
+function toggleJoin() {
+  const r = document.getElementById('joinRow');
+  r.style.display = r.style.display === 'none' ? 'flex' : 'none';
+  if (r.style.display === 'flex') document.getElementById('roomInp').focus();
+}
+
+async function joinRoom() {
+  const rid = document.getElementById('roomInp').value.trim().toUpperCase();
+  if (!rid || rid.length !== 6) { toast('请输入6位房间号'); return; }
+  if (mqttConnected) { toast('已在房间中'); return; }
+  try {
+    await connectMQTT();
+    roomId = rid;
+    subscribeTopics();
+    myColor = 'white'; myTurn = false; mode = 'online';
+    initGame(); render();
+
+    document.getElementById('roomCode').textContent = roomId;
+    document.getElementById('onlineInit').style.display = 'none';
+    document.getElementById('onlineInfo').style.display = 'flex';
+    document.getElementById('onlineBox').classList.add('show');
+    document.getElementById('topTitle').innerHTML = '在线联机 · ⚪ 白棋';
+    setBadge('green', '✅ 已加入房间');
+    // Notify creator
+    pub('joined', {});
+    toast('已加入房间！等待黑棋落子');
+  } catch (e) {
+    toast('连接失败：' + e.message);
+    mqtt = null; mqttConnected = false;
+  }
+}
+
+function copyRoom() {
+  if (!roomId) return;
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(roomId).then(() => toast('✅ 已复制房间号！')).catch(() => fallbackCopy(roomId));
-  } else {
-    fallbackCopy(roomId);
-  }
+    navigator.clipboard.writeText(roomId).then(() => toast('✅ 已复制！')).catch(() => fallback(roomId));
+  } else { fallback(roomId); }
 }
-
-function fallbackCopy(text) {
+function fallback(t) {
   const ta = document.createElement('textarea');
-  ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
-  document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); toast('✅ 已复制房间号！'); } catch (e) { toast('复制失败，请手动复制'); }
+  ta.value = t; ta.style.cssText = 'position:fixed;left:-9999px;'; document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); toast('✅ 已复制！'); } catch (e) { toast('请手动复制'); }
   document.body.removeChild(ta);
 }
 
 function leaveOnline() {
-  if (conn) { try { conn.close(); } catch (e) {} conn = null; }
-  if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
-  peerReady = false;
-  mode = 'local';
-  myColor = null;
-  roomId = null;
-  isMyTurn = true;
-  document.getElementById('onlinePanel').classList.remove('show');
-  document.getElementById('onlineBefore').style.display = 'flex';
-  document.getElementById('onlineAfter').style.display = 'none';
+  if (mqtt) { try { mqtt.end(true); } catch(e) {} mqtt = null; mqttConnected = false; }
+  mode = 'local'; myColor = null; roomId = null; myTurn = true;
+  document.getElementById('onlineBox').classList.remove('show');
+  document.getElementById('onlineInit').style.display = 'flex';
+  document.getElementById('onlineInfo').style.display = 'none';
   document.getElementById('joinRow').style.display = 'none';
-  document.getElementById('gameTitle').textContent = '本地对战';
+  document.getElementById('topTitle').textContent = '本地对战';
   setBadge('', '');
-  initState();
-  draw();
+  initGame(); render();
 }
 
 function setBadge(cls, msg) {
-  const el = document.getElementById('connBadge');
-  if (!msg) { el.innerHTML = ''; return; }
-  el.innerHTML = `<span class="badge ${cls}">${msg}</span>`;
+  const el = document.getElementById('tagArea');
+  el.innerHTML = msg ? `<span class="tag ${cls}">${msg}</span>` : '';
 }
 
-// ==============================
-// START MODES
-// ==============================
-function startLocal() {
+// ==================== NAVIGATION ====================
+function goHome() {
   leaveOnline();
-  mode = 'local';
-  myColor = null;
-  isMyTurn = true;
-  document.getElementById('gameTitle').textContent = '本地对战';
-  document.getElementById('onlinePanel').classList.remove('show');
-  initState();
-  showScreen('gameScreen');
-  setTimeout(setupCanvas, 100);
+  document.getElementById('home').classList.add('active');
+  document.getElementById('game').classList.remove('active');
 }
 
-function startOnline() {
+function startGame(m) {
   leaveOnline();
-  mode = 'online';
-  document.getElementById('gameTitle').textContent = '在线联机';
-  document.getElementById('onlinePanel').classList.add('show');
-  document.getElementById('onlineBefore').style.display = 'flex';
-  document.getElementById('onlineAfter').style.display = 'none';
-  document.getElementById('joinRow').style.display = 'none';
-  document.getElementById('connBadge').innerHTML = '';
-  initState();
-  showScreen('gameScreen');
-  setTimeout(setupCanvas, 100);
+  mode = m;
+  initGame();
+  document.getElementById('home').classList.remove('active');
+  document.getElementById('game').classList.add('active');
+
+  if (m === 'online') {
+    document.getElementById('onlineBox').classList.add('show');
+    document.getElementById('onlineInit').style.display = 'flex';
+    document.getElementById('onlineInfo').style.display = 'none';
+    document.getElementById('joinRow').style.display = 'none';
+    document.getElementById('topTitle').textContent = '在线联机';
+  } else {
+    document.getElementById('onlineBox').classList.remove('show');
+    document.getElementById('topTitle').textContent = '本地对战';
+  }
+
+  setTimeout(resize, 150);
 }
 
-// ==============================
-// TOAST
-// ==============================
-let toastTimer;
+// ==================== TOAST ====================
+let tt;
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+  clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-// ==============================
-// EVENTS
-// ==============================
-function getClickPos(e) {
+// ==================== INPUT ====================
+function inputPos(e) {
   const rect = canvas.getBoundingClientRect();
-  const sx = _size / rect.width;
-  const sy = _size / rect.height;
-  let cx, cy;
-  if (e.touches) {
-    cx = (e.touches[0].clientX - rect.left) * sx;
-    cy = (e.touches[0].clientY - rect.top) * sy;
-  } else {
-    cx = (e.clientX - rect.left) * sx;
-    cy = (e.clientY - rect.top) * sy;
-  }
-  const col = Math.round((cx - _pad) / _cs);
-  const row = Math.round((cy - _pad) / _cs);
-  return { row, col };
+  const sx = sz / rect.width, sy = sz / rect.height;
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy = e.touches ? e.touches[0].clientY : e.clientY;
+  return {
+    r: Math.round(((cy - rect.top) * sy - pd) / cs),
+    c: Math.round(((cx - rect.left) * sx - pd) / cs)
+  };
 }
 
-canvas.addEventListener('click', (e) => {
-  const { row, col } = getClickPos(e);
-  tryPlace(row, col);
-});
+canvas.addEventListener('click', e => { const { r, c } = inputPos(e); place(r, c); });
+canvas.addEventListener('touchstart', e => { e.preventDefault(); const { r, c } = inputPos(e); place(r, c); }, { passive: false });
 
-canvas.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  const { row, col } = getClickPos(e);
-  tryPlace(row, col);
-}, { passive: false });
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 400));
+document.getElementById('winOverlay').addEventListener('click', function(e) { if (e.target === this) clickReset(); });
 
-window.addEventListener('resize', setupCanvas);
-window.addEventListener('orientationchange', () => setTimeout(setupCanvas, 400));
-
-document.getElementById('winOverlay').addEventListener('click', function(e) {
-  if (e.target === this) resetGame();
-});
-
-// ==============================
-// INIT
-// ==============================
-showScreen('homeScreen');
+// ==================== INIT ====================
+document.getElementById('home').classList.add('active');
 </script>
 </body>
 </html>
